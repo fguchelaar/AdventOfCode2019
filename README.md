@@ -1,2 +1,3 @@
-# AdventOfCode2019
-My solutions for the ~Advent of Code 2019~ event.
+# Advent of Code 2019
+
+My solutions for the fifth installment of [Advent of Code](https://adventofcode.com).
