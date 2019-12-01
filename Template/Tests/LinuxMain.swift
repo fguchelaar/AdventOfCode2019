@@ -1,6 +1,6 @@
 import XCTest
 
-import day01Tests
+import PuzzleTests
 
 var tests = [XCTestCaseEntry]()
 tests += PuzzleTests.allTests()
