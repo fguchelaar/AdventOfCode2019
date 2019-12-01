@@ -2,7 +2,7 @@
 //  Puzzle.swift
 //  
 //
-//  Created by Frank Guchelaar on 30/11/2019.
+//  Created by Frank Guchelaar on 01/12/2019.
 //
 
 import Foundation
@@ -12,7 +12,7 @@ public class Puzzle {
 
     let input: [Int]
     public init(input: String) {
-        self.input = input.intArray  
+        self.input = input.intArray
     }
 
     public func part1() -> Int {
@@ -32,12 +32,7 @@ public class Puzzle {
     }
 
     func totalRequiredFuel(for mass: Int) -> Int {
-        var total = 0
-        var fuel = requiredFuel(for: mass)
-        while fuel > 0 {
-            total += fuel
-            fuel = requiredFuel(for: fuel)
-        }
-        return total
+        let fuel = requiredFuel(for: mass)
+        return fuel >= 0 ? fuel + totalRequiredFuel(for: fuel) : 0
     }
 }
