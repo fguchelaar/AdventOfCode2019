@@ -1,7 +1,7 @@
 import XCTest
 @testable import Puzzle
 
-final class day01Tests: XCTestCase {
+final class PuzzleTests: XCTestCase {
 
     func testRequiredFuel() throws {
         let puzzle = Puzzle(input: "")

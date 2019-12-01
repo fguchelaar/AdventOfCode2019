@@ -1,7 +1,7 @@
 import XCTest
 @testable import Puzzle
 
-final class dayNNTests: XCTestCase {
+final class PuzzleTests: XCTestCase {
 
     func testExample() throws {
         let puzzle = Puzzle(input: "")
