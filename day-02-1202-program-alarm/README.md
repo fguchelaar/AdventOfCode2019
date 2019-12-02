@@ -1,0 +1,3 @@
+# day-02: 1202 Program Alarm
+
+Implemented the restoration 'inline' in this puzzle, but I have a feeling it might end up in the AdventKit...
