@@ -1,7 +1,7 @@
 import XCTest
 
-import AdventKitTests
+import PuzzleTests
 
 var tests = [XCTestCaseEntry]()
-tests += PointTests.allTests()
+tests += PuzzleTests.allTests()
 XCTMain(tests)
