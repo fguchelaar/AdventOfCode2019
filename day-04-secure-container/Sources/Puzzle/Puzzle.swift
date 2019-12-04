@@ -30,11 +30,11 @@ public class Puzzle {
 
         for i in 1..<digits.count {
             neverDecreases = neverDecreases && (digits[i] >= digits[i-1])
-            if !neverDecreases { continue }
+            if !neverDecreases { break }
             containsDouble = containsDouble || (digits[i] == digits[i-1])
         }
 
-        return containsDouble && neverDecreases
+        return neverDecreases && containsDouble
     }
 
     public func part2() -> Int {
@@ -49,16 +49,12 @@ public class Puzzle {
         var pairs = [Int: Int]()
         for i in 1..<digits.count {
             neverDecreases = neverDecreases && (digits[i] >= digits[i-1])
-            if !neverDecreases { continue }
+            if !neverDecreases { break }
             if (digits[i] == digits[i-1]) {
                 pairs[digits[i], default: 1] += 1
             }
         }
 
-        let containsDouble = pairs.contains {
-            $0.value == 2
-        }
-
-        return containsDouble && neverDecreases
+        return neverDecreases && pairs.contains { $0.value == 2 }
     }
 }
