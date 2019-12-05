@@ -23,65 +23,68 @@ class IntCode {
         while(instructionPointer<memory.count) {
 
             let opcode = memory[instructionPointer]
-            // Add an extra 1 to account for the opcode itself
-            self.instructionPointer +=  1
 
-            var parameters: [(Bool, Int)]
+            // Set the pointer after the opcodeƒ
+            instructionPointer +=  1
+
+            var params: [Int]
             switch opcode % 100 {
-            case 1:
-                parameters = params(count: 3, at: instructionPointer, opcode: opcode)
-                memory[parameters[2].1] =
-                    (parameters[0].0 ? parameters[0].1 : memory[parameters[0].1]) +
-                    (parameters[1].0 ? parameters[1].1 : memory[parameters[1].1])
-            case 2:
-                parameters = params(count: 3, at: instructionPointer, opcode: opcode)
-                memory[parameters[2].1] =
-                    (parameters[0].0 ? parameters[0].1 : memory[parameters[0].1]) *
-                    (parameters[1].0 ? parameters[1].1 : memory[parameters[1].1])
-            case 3:
-                parameters = params(count: 1, at: instructionPointer, opcode: opcode)
-                memory[parameters[0].1] = input
-            case 4:
-                parameters = params(count: 1, at: instructionPointer, opcode: opcode)
-                output.append(parameters[0].0 ? parameters[0].1 : memory[parameters[0].1])
-            case 5:
-                parameters = params(count: 2, at: instructionPointer, opcode: opcode)
-                if (parameters[0].0 ? parameters[0].1 : memory[parameters[0].1]) != 0 {
-                    instructionPointer = (parameters[1].0 ? parameters[1].1 : memory[parameters[1].1])
+            case 1: // add
+                params = parameters(count: 2, at: instructionPointer, opcode: opcode)
+                memory[memory[instructionPointer+2]] =  params[0] + params[1]
+                instructionPointer += 3
+            case 2: // multiply
+                params = parameters(count: 2, at: instructionPointer, opcode: opcode)
+                memory[memory[instructionPointer+2]] =  params[0] * params[1]
+                instructionPointer += 3
+            case 3: // set input
+                memory[memory[instructionPointer]] = input
+                instructionPointer += 1
+            case 4: // output
+                params = parameters(count: 1, at: instructionPointer, opcode: opcode)
+                output.append(params[0])
+                instructionPointer += 1
+            case 5: // jump-if-true
+                params = parameters(count: 2, at: instructionPointer, opcode: opcode)
+                if params[0] != 0 {
+                    instructionPointer = params[1]
                     continue
                 }
-            case 6:
-                parameters = params(count: 2, at: instructionPointer, opcode: opcode)
-                if (parameters[0].0 ? parameters[0].1 : memory[parameters[0].1]) == 0 {
-                    instructionPointer = (parameters[1].0 ? parameters[1].1 : memory[parameters[1].1])
+                instructionPointer += 2
+            case 6: // jump-if-false
+                params = parameters(count: 2, at: instructionPointer, opcode: opcode)
+                if params[0] == 0 {
+                    instructionPointer = params[1]
                     continue
                 }
-            case 7:
-                parameters = params(count: 3, at: instructionPointer, opcode: opcode)
-                let p1 = (parameters[0].0 ? parameters[0].1 : memory[parameters[0].1])
-                let p2 = (parameters[1].0 ? parameters[1].1 : memory[parameters[1].1])
-                memory[parameters[2].1] = p1 < p2 ? 1 : 0
-            case 8:
-                parameters = params(count: 3, at: instructionPointer, opcode: opcode)
-                let p1 = (parameters[0].0 ? parameters[0].1 : memory[parameters[0].1])
-                let p2 = (parameters[1].0 ? parameters[1].1 : memory[parameters[1].1])
-                memory[parameters[2].1] = p1 == p2 ? 1 : 0
-            case 99:
+                instructionPointer += 2
+            case 7: // less than
+                params = parameters(count: 2, at: instructionPointer, opcode: opcode)
+                memory[memory[instructionPointer+2]] = params[0] < params[1] ? 1 : 0
+                instructionPointer += 3
+            case 8: // equals
+                params = parameters(count: 2, at: instructionPointer, opcode: opcode)
+                memory[memory[instructionPointer+2]] = params[0] == params[1] ? 1 : 0
+                instructionPointer += 3
+            case 99: // halt
                 return
             default:
                 fatalError()
             }
-
-            self.instructionPointer += parameters.count
         }
     }
 
-    func params(count: Int, at: Int, opcode: Int) -> [(Bool,Int)] {
+    /// Maps `count` parameters to either their immediate- or postion-mode value
+    /// - Parameters:
+    ///   - count: number of params to get
+    ///   - at: starting a location
+    ///   - opcode: opcode to use for determining the mode
+    func parameters(count: Int, at: Int, opcode: Int) -> [Int] {
         Array(memory[at..<(at+count)]).enumerated()
             .map { (index, element) in
                 let power = index + 2
                 let div = (pow(10, power) as NSDecimalNumber).intValue
-                return ((opcode / div) % 10 ) == 1 ? (true, element) : (false, element)
+                return ((opcode / div) % 10 ) == 1 ? element : memory[element]
         }
     }
 }
