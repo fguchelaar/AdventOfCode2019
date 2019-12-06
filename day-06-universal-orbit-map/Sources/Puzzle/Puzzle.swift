@@ -39,7 +39,23 @@ public class Puzzle {
         return count
     }
 
-    public func part2() -> String {
-        ""
+    public func part2() -> Int {
+        let path1 = path(from: "YOU", to: "COM")
+        let path2 = path(from: "SAN", to: "COM")
+
+        // find first intersecting object
+        let intersection = path1.first { path2.contains($0) }!
+
+        return path1.firstIndex(of: intersection)! + path2.firstIndex(of: intersection)!
+    }
+
+    func path(from: String, to: String) -> [String] {
+        var object = map[from]!
+        var objects = [object]
+        while object != to {
+            object = map[object]!
+            objects.append(object)
+        }
+        return objects
     }
 }
