@@ -25,4 +25,12 @@ public struct Point: Equatable, Hashable {
     public static func +(lhs: Point, rhs: Point) -> Point {
         Point(x: lhs.x + rhs.x, y: lhs.y + rhs.y)
     }
+
+    /// calculates the angle in radians between two points; normalized where `0.0` is **up**
+    public func angle(to other: Point) -> Double {
+        let dy = other.y - y
+        let dx = other.x - x
+        let rad = atan2(Double(dy), Double(dx))
+        return (rad + (0.5 * .pi) + (2 * .pi)).truncatingRemainder(dividingBy: 2 * .pi)
+    }
 }
