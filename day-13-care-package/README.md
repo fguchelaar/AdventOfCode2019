@@ -1,0 +1,4 @@
+# day-13: Care Package 
+
+For part two I also created a function that draws the game to the console. Uncomment 
+line #58 to enable this.

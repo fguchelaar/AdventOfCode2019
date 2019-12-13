@@ -12,6 +12,10 @@ public struct Point3d: Equatable, Hashable {
     public let y: Int
     public let z: Int
 
+    public static var zero: Point3d {
+        Point3d(x: 0, y: 0, z: 0)
+    }
+
     public init(x: Int, y: Int, z: Int) {
         self.x = x
         self.y = y
