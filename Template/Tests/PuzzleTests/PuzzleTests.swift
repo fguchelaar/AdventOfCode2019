@@ -3,7 +3,7 @@ import XCTest
 
 final class PuzzleTests: XCTestCase {
 
-    func testExample() throws {
+    func testExample()  {
         let puzzle = Puzzle(input: "")
         XCTAssertEqual(puzzle.part1(), "")
     }
