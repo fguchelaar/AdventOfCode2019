@@ -18,8 +18,5 @@ let package = Package(
         .target(
             name: "Puzzle",
             dependencies: ["AdventKit"]),
-        .testTarget(
-            name: "PuzzleTests",
-            dependencies: ["Puzzle"]),
     ]
 )

@@ -1,5 +1,8 @@
 # day-17: Set And Forget 
 
+Part 2 could easily be solved without programming, so I preferred that
+over writing a solver.
+
 ```
 ..............##########^..............................
 ..............#........................................

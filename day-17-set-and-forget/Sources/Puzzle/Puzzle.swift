@@ -29,7 +29,7 @@ public class Puzzle {
         let map = String(ic.output.map {
             Character(UnicodeScalar($0)!)
         })
-//        print(map)
+        // print(map)
 
         let grid = map
             .trimmingCharacters(in: .whitespacesAndNewlines)
@@ -40,7 +40,6 @@ public class Puzzle {
                     .filter { c in c.element != "." }
                     .forEach { c in g[Point(x: c.offset, y: l.offset)] = c.element }
         }
-//        draw(board: grid)
 
         let intersections = grid
             .map { $0.key }
@@ -51,26 +50,28 @@ public class Puzzle {
         }
     }
 
-    public func part2() -> String {
-        ""
-    }
+    public func part2() -> Int {
+        let routine = "A,A,B,C,B,C,B,C,B,A\n".map { $0.asciiValue! }
+        let functionA = "L,10,L,8,R,8,L,8,R,6\n".map { $0.asciiValue! }
+        let functionB = "R,6,R,8,R,8\n".map { $0.asciiValue! }
+        let functionC = "R,6,R,6,L,8,L,10\n".map { $0.asciiValue! }
+        let feedback = "n\n".map { $0.asciiValue! }
 
-    func draw(board: [Point: Character]) {
+        let input =  [
+            routine,
+            functionA,
+            functionB,
+            functionC,
+            feedback
+            ]
+            .flatMap { $0 }
+            .map { Int($0) }
 
-        let minPoint = board.reduce(Point(x: Int.max, y: Int.max)) { Point(x: min($0.x, $1.key.x), y: min($0.y, $1.key.y))}
-        let maxPoint = board.reduce(Point(x: Int.min, y: Int.min)) { Point(x: max($0.x, $1.key.x), y: max($0.y, $1.key.y))}
+        var altered = program
+        altered[0] = 2
+        let ic = IntCode(memory: altered)
+        ic.runProgram(inputs: input)
 
-        var output = ""
-        for y in (minPoint.y...maxPoint.y) {
-            for x in (minPoint.x...maxPoint.x) {
-                if let char = board[Point(x: x, y: y)] {
-                    output += String(char)
-                } else {
-                    output += "."
-                }
-            }
-            output += "\n"
-        }
-        print(output)
+        return ic.output.last!
     }
 }
