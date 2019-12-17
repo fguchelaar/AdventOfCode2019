@@ -76,17 +76,23 @@ public class Puzzle {
 
     public func part2() -> String {
 
-        for r in 1...10 {
-            let repeated = Array<String>(repeating: input, count: r).joined()
-            let output = apply(phases: 100, to: repeated)
-            let offset = Int(output.prefix(8))!
+        let repeated = Array<String>(repeating: input, count: 10000).joined()
+        let output = apply(phases: 1, to: repeated)
+        let offset = Int(output.prefix(7))!
 
-            print("\(r):\t\(offset)")
-        }
+        print(offset)
+
+//        for r in 1...10 {
+//            let repeated = Array<String>(repeating: input, count: r).joined()
+//            let output = apply(phases: 100, to: repeated)
+//            let offset = Int(output.prefix(7))!
+//
+//            print("\(r):\t\(offset)")
+//        }
 
 //        let repeated = Array<String>(repeating: input, count: 1).joined()
 //        let output = apply(phases: 100, to: repeated)
-//        let offset = Int(output.prefix(8))!
+//        let offset = Int(output.prefix(7))!
 //
 //        let start = output.index(repeated.startIndex, offsetBy: offset)
 //        let end = output.index(repeated.startIndex, offsetBy: offset+8)
