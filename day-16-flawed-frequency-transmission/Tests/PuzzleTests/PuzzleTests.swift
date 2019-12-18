@@ -7,6 +7,8 @@ final class PuzzleTests: XCTestCase {
         let puzzle = Puzzle(input: "")
         XCTAssertEqual(puzzle.pattern(for: 0), [1,0,-1,0])
         XCTAssertEqual(puzzle.pattern(for: 1), [0, 1, 1, 0, 0, -1, -1,0])
+        XCTAssertEqual(puzzle.pattern(for: 0), [1,0,-1,0])
+        XCTAssertEqual(puzzle.pattern(for: 1), [0, 1, 1, 0, 0, -1, -1,0])
     }
 
     func test12345678() {
@@ -34,17 +36,17 @@ final class PuzzleTests: XCTestCase {
     }
 
     func testPart2Example1() {
-        let puzzle = Puzzle(input: "80871224585914546619083218645595")
+        let puzzle = Puzzle(input: "03036732577212944063491565474664")
         XCTAssertEqual(puzzle.part2(), "84462026")
     }
 
     func testPart2Example2() {
-        let puzzle = Puzzle(input: "19617804207202209144916044189917")
+        let puzzle = Puzzle(input: "02935109699940807407585447034323")
         XCTAssertEqual(puzzle.part2(), "78725270")
     }
 
     func testPart2Example3() {
-        let puzzle = Puzzle(input: "69317163492948606335995924319873")
+        let puzzle = Puzzle(input: "03081770884921959731165446850517")
         XCTAssertEqual(puzzle.part2(), "53553731")
     }
 
