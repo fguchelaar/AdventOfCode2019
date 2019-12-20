@@ -197,8 +197,7 @@ public class Puzzle {
             }
         }.map { $0.key })
 
-        var dist = q.reduce(into: [Point: Int]()) { $0[$1] = Int.max }
-        dist[source] = 0
+        var dist = [source: 0]
 
         while !q.isEmpty {
             let u = dist
@@ -211,13 +210,12 @@ public class Puzzle {
             }
             q.remove(u)
 
-
             // There are some unreachable points in the input, they'll alwasy
             // have Int.max as distance. So let's skip those
-            if dist[u] != Int.max {
+            if dist[u, default: Int.max] != Int.max {
                 for v in neighbors(u) {
                     let alt = dist[u]! + 1
-                    if alt < dist[v]! {
+                    if alt < dist[v, default: Int.max] {
                         dist[v] = alt
                     }
                 }
