@@ -11,6 +11,18 @@ public struct Point: Equatable, Hashable {
     public let x: Int
     public let y: Int
 
+    public static var zero: Point {
+        Point(x: 0, y: 0)
+    }
+
+    public static var min: Point {
+        Point(x: Int.min, y: Int.min)
+    }
+
+    public static var max: Point {
+        Point(x: Int.max, y: Int.max)
+    }
+
     public init(x: Int, y: Int) {
         self.x = x
         self.y = y

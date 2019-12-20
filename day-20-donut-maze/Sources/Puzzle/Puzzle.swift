@@ -172,7 +172,7 @@ public class Puzzle {
     public func part1() -> Int {
         drawMap(map: map, start: start, finish: finish)
 
-        let distances = dijkstra(graph: map, source: start) { point in
+        let distance = dijkstra(graph: map, source: start, target: finish) { point in
             [point.up, point.down, point.left, point.right]
                 .compactMap { nb in
                     switch map[nb] {
@@ -186,10 +186,10 @@ public class Puzzle {
             }
         }
 
-        return distances[finish]!
+        return distance
     }
 
-    func dijkstra(graph: [Point: Tile], source: Point, neighbors: (_ of: Point) -> [Point]) -> [Point: Int] {
+    func dijkstra(graph: [Point: Tile], source: Point, target: Point, neighbors: (_ of: Point) -> [Point]) -> Int {
         var q = Set<Point>(graph.filter {
             switch $0.value {
             case .free: return true
@@ -206,7 +206,11 @@ public class Puzzle {
                 .sorted { $0.value < $1.value }
                 .first!.key
 
+            if u == target {
+                break
+            }
             q.remove(u)
+
 
             // There are some unreachable points in the input, they'll alwasy
             // have Int.max as distance. So let's skip those
@@ -220,7 +224,7 @@ public class Puzzle {
             }
         }
 
-        return dist
+        return dist[target]!
     }
 
     public func part2() -> Int {
