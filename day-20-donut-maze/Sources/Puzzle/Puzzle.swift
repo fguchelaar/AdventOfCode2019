@@ -21,17 +21,13 @@ enum Tile {
     case portal(_: Portal)
 }
 
-class Portal: CustomStringConvertible {
+class Portal {
 
     var name: String
     private (set) var pointA: Point!
     private (set) var pointToA: Point!
     private (set) var pointB: Point!
     private (set) var pointToB: Point!
-
-    var description: String {
-        "\(name):\t\(pointA ?? Point.zero)\t <-> \(pointToB ?? Point.zero)\t \t\(pointB ?? Point.zero)\t <-> \(pointToA ?? Point.zero) "
-    }
 
     init(name: String) {
         self.name = name
@@ -66,6 +62,7 @@ public class Puzzle {
     let map: [Point: Tile]
     let start: Point
     let finish: Point
+
     public init(input: String) {
         let parsed = Puzzle.parse(input)
         map = parsed.0
@@ -119,63 +116,29 @@ public class Puzzle {
         }
 
         var map = [Point: Tile]()
-        input.trimmingCharacters(in: .newlines)
-            .components(separatedBy: .newlines)
-            .enumerated().forEach { line in
-                line.element.enumerated().forEach { character in
-
-                    let point = Point(x: character.offset, y: line.offset)
-                    if character.element == "#" {
-                        map[point] = .wall
-                    } else if character.element == "." {
-                        map[point] = .free
-                    } else if character.element != " " {
-                        if let portal = parsePortal(at: point) {
-                            map[point] = .portal(portal)
-                        }
+        characters.enumerated().forEach { line in
+            line.element.enumerated().forEach { character in
+                let point = Point(x: character.offset, y: line.offset)
+                if character.element == "#" {
+                    map[point] = .wall
+                } else if character.element == "." {
+                    map[point] = .free
+                } else if character.element != " " {
+                    if let portal = parsePortal(at: point) {
+                        map[point] = .portal(portal)
                     }
                 }
+            }
         }
         return (map, portals["AA"]!.pointToA, portals["ZZ"]!.pointToA)
     }
 
-    func drawMap(map: [Point: Tile], start: Point, finish: Point) {
-        let minPoint = map.reduce(Point.max) { Point(x: min($0.x, $1.key.x), y: min($0.y, $1.key.y)) }
-        let maxPoint = map.reduce(Point.min) { Point(x: max($0.x, $1.key.x), y:  max($0.y, $1.key.y)) }
-
-        var output = ""
-        for y in minPoint.y...maxPoint.y {
-            for x in minPoint.x...maxPoint.x {
-                let point = Point(x: x, y: y)
-                if point == start {
-                    output += "S"
-                } else if point == finish {
-                    output += "F"
-                } else {
-                    switch map[point] {
-                    case .free:
-                        output += "."
-                    case .wall:
-                        output += "#"
-                    case .portal:
-                        output += "@"
-                    default:
-                        output += " "
-                    }
-                }
-            }
-            output += "\n"
-        }
-        print(output)
-    }
-
     public func part1() -> Int {
-        drawMap(map: map, start: start, finish: finish)
 
-        let distance = dijkstra(graph: map, source: start, target: finish) { point in
+        let neighborFunction: (Point) -> [Point] = { point in
             [point.up, point.down, point.left, point.right]
                 .compactMap { nb in
-                    switch map[nb] {
+                    switch self.map[nb] {
                     case .free:
                         return nb
                     case .portal(let portal):
@@ -186,46 +149,102 @@ public class Puzzle {
             }
         }
 
-        return distance
+        return bfs(graph: map,
+                   source: start,
+                   target: finish,
+                   neighbors: neighborFunction)
     }
 
-    func dijkstra(graph: [Point: Tile], source: Point, target: Point, neighbors: (_ of: Point) -> [Point]) -> Int {
-        var q = Set<Point>(graph.filter {
-            switch $0.value {
-            case .free: return true
-            default: return false
-            }
-        }.map { $0.key })
+    func bfs(graph: [Point: Tile], source: Point, target: Point, neighbors: (_ of: Point) -> [Point]) -> Int {
 
+        // keep reference to the distance
         var dist = [source: 0]
+        var queue = Queue<Point>()
+        var discovered = Set<Point>()
+        discovered.insert(source)
 
-        while !q.isEmpty {
-            let u = dist
-                .filter { q.contains($0.key) }
-                .sorted { $0.value < $1.value }
-                .first!.key
+        queue.enqueue(source)
 
-            if u == target {
+        while !queue.isEmpty {
+            let v = queue.dequeue()!
+            if v == target {
                 break
             }
-            q.remove(u)
 
-            // There are some unreachable points in the input, they'll alwasy
-            // have Int.max as distance. So let's skip those
-            if dist[u, default: Int.max] != Int.max {
-                for v in neighbors(u) {
-                    let alt = dist[u]! + 1
-                    if alt < dist[v, default: Int.max] {
-                        dist[v] = alt
-                    }
+            for w in neighbors(v) {
+                if !discovered.contains(w) {
+                    discovered.insert(w)
+                    dist[w] = dist[v]! + 1
+                    queue.enqueue(w)
                 }
             }
         }
-
         return dist[target]!
     }
 
     public func part2() -> Int {
-        -1
+        let maxPoint = map.reduce(Point.min) { Point(x: max($0.x, $1.key.x), y:  max($0.y, $1.key.y)) }
+
+        let neighborFunction: (Point3d) -> [Point3d] = { point3d in
+            let point = Point(x: point3d.x, y: point3d.y)
+            return [point.up, point.down, point.left, point.right]
+                .compactMap { nb in
+                    switch self.map[nb] {
+                    case .free:
+                        return Point3d(x: nb.x, y: nb.y, z: point3d.z)
+                    case .portal(let portal):
+                        let to = portal.teleport(from: nb)
+
+                        let isOutside = nb.x == 1 || nb.y == 1
+                            || nb.x == maxPoint.x
+                            || nb.y == maxPoint.y
+
+                        if isOutside && point3d.z == 0 {
+                            return nil
+                        } else {
+                            let dz = isOutside ? -1 : 1
+                            return Point3d(x: to.x, y: to.y, z: point3d.z + dz)
+                        }
+                    default:
+                        return nil
+                    }
+            }
+        }
+
+        return bfs3d(graph: map,
+                     source: start,
+                     target: finish,
+                     neighbors: neighborFunction)
+
+    }
+
+    func bfs3d(graph: [Point: Tile], source: Point, target: Point, neighbors: (_ of: Point3d) -> [Point3d]) -> Int {
+
+        let source3d = Point3d(x: source.x, y: source.y, z: 0)
+        let target3d = Point3d(x: target.x, y: target.y, z: 0)
+
+        // keep reference to the distance
+        var dist = [source3d: 0]
+        var queue = Queue<Point3d>()
+        var discovered = Set<Point3d>()
+        discovered.insert(source3d)
+
+        queue.enqueue(source3d)
+
+        while !queue.isEmpty {
+            let v = queue.dequeue()!
+            if v == target3d {
+                break
+            }
+
+            for w in neighbors(v) {
+                if !discovered.contains(w) {
+                    discovered.insert(w)
+                    dist[w] = dist[v]! + 1
+                    queue.enqueue(w)
+                }
+            }
+        }
+        return dist[target3d]!
     }
 }
