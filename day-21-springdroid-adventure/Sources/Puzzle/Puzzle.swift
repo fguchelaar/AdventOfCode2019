@@ -27,6 +27,14 @@ public class Puzzle {
 
     public func part2() -> Int {
         run(instructions: [
+            "OR A T",
+            "AND B T",
+            "AND C T",
+            "NOT T J",
+            "AND H J",
+            "AND D J",
+            "NOT A T",
+            "OR T J",
             "RUN"
         ], printOutput: true)
     }
