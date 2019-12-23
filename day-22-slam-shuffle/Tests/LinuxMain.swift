@@ -3,5 +3,5 @@ import XCTest
 import PuzzleTests
 
 var tests = [XCTestCaseEntry]()
-tests += PuzzleTests.allTests()
+tests += DeckTests.allTests()
 XCTMain(tests)
