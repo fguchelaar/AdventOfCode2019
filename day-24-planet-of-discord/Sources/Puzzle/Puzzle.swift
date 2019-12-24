@@ -2,7 +2,7 @@
 //  Puzzle.swift
 //  
 //
-//  Created by Frank Guchelaar on 30/11/2019.
+//  Created by Frank Guchelaar on 24/12/2019.
 //
 
 import Foundation
@@ -29,7 +29,14 @@ public class Puzzle {
         }
     }
 
-    public func part2() -> String {
-        ""
+    public func part2() -> Int {
+
+        let eris = RecursiveEris(map: input)
+
+        (0..<200).forEach { step in
+            eris.step()
+        }
+
+        return eris.count
     }
 }
