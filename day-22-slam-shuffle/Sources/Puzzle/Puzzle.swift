@@ -14,6 +14,17 @@ public class Puzzle {
         case newStack
         case cut(count: Int)
         case deal(with: Int)
+
+        func apply(to deck: Deck) {
+            switch self {
+            case .newStack:
+                deck.dealIntoNew()
+            case .cut(let count):
+                deck.cut(count: count)
+            case .deal(let with):
+                deck.deal(with: with)
+            }
+        }
     }
 
     let instructions: [Shuffle]
@@ -40,33 +51,49 @@ public class Puzzle {
 
     public func part1() -> Int {
         let deck = Deck(count: 10_007)
-        instructions.forEach { instruction in
-            switch instruction {
-            case .newStack:
-                deck.dealIntoNew()
-            case .cut(let count):
-                deck.cut(count: count)
-            case .deal(let with):
-                deck.deal(with: with)
-            }
-        }
+        instructions.forEach { $0.apply(to: deck) }
         return deck.position(of: 2019)
     }
 
-    public func part2() -> Int {
-        let deck = Deck(count: 119_315_717_514_047)
-        for _ in 0..<101_741_582_076_661 {
-            instructions.forEach { instruction in
-                switch instruction {
-                case .newStack:
-                    deck.dealIntoNew()
-                case .cut(let count):
-                    deck.cut(count: count)
-                case .deal(let with):
-                    deck.deal(with: with)
-                }
-            }
+    func power(_ x: BInt, _ y: BInt, _ m: BInt) -> BInt {
+        if y == 0 { return 1 }
+        var p = power(x, y / 2, m) % m
+        p = (p * p) % m
+        return y.isEven() ? p : (x * p) % m
+    }
+
+    func primeModInverse(_ a: BInt, _ m: BInt) -> BInt {
+        return power(a, m - 2, m)
+    }
+
+    func applyInverse(shuffle: Shuffle, to position: BInt, with deckSize: BInt) -> BInt {
+        switch shuffle {
+        case .newStack:
+            return deckSize - 1 - position
+        case .cut(let count):
+            return (position + BInt(count) + deckSize) % deckSize
+        case .deal(let with):
+            return primeModInverse(BInt(with), deckSize) * position % deckSize
         }
-        return deck.position(of: 2020)
+    }
+
+    public func part2() -> Int {
+
+        let d = BInt(119_315_717_514_047)
+        let n = BInt(101_741_582_076_661)
+        let x = BInt(2020)
+
+        let y = instructions.reversed()
+            .reduce(x) { applyInverse(shuffle: $1, to: $0, with: d) }
+
+        let z = instructions.reversed()
+            .reduce(y) { applyInverse(shuffle: $1, to: $0, with: d) }
+
+        let a = (y - z) * primeModInverse(x - y + d, d) % d
+        let b = (y - a * x) % d
+
+        let answer = (power(a, n, d) * x + (power(a, n, d) - 1) * primeModInverse(a - 1, d) * b) % d
+
+        return Int(answer)
     }
 }

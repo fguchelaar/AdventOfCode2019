@@ -80,4 +80,8 @@ class Deck {
     func position(of card: Int) -> Int {
         activeCards.array.firstIndex(of: card)!
     }
+
+    func card(at position: Int) -> Int {
+        activeCards.array[position]
+    }
 }
