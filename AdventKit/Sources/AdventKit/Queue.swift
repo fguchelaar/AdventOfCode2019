@@ -13,6 +13,10 @@ public struct Queue<T> {
 
     public var isEmpty: Bool { list.isEmpty }
 
+    public var count: Int {
+        list.count
+    }
+
     public init() {
         list = LinkedList<T>()
     }
@@ -26,5 +30,9 @@ public struct Queue<T> {
             return nil
         }
         return list.remove(node: node)
+    }
+
+    public mutating func removeAll() {
+        list.removeAll()
     }
 }

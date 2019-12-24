@@ -24,6 +24,21 @@ public class LinkedList<T> {
         tail
     }
 
+    var count: Int {
+        guard var node = head else {
+            return 0
+        }
+
+        var count = 0
+
+        while node !== tail {
+            node = node.next!
+            count += 1
+        }
+
+        return count + 1
+    }
+
     func append(_ value: T) {
         let newNode = Node(value: value)
         if let tailNode = tail {
@@ -54,5 +69,10 @@ public class LinkedList<T> {
         node.next = nil
 
         return node.value
+    }
+
+    func removeAll() {
+        head = nil
+        tail = nil
     }
 }

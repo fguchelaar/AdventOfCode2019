@@ -58,7 +58,6 @@ public class Puzzle {
                         else {
                             ics[wrapper.target!].inputs.enqueue(output.element)
                         }
-
                     }
                     wrapper.outputPointer = wrapper.ic.output.count
                 }
@@ -66,7 +65,53 @@ public class Puzzle {
         }
     }
 
-    public func part2() -> String {
-        ""
+    public func part2() -> Int {
+        var nat = Queue<Int>()
+        var lastY: Int = -1
+
+        let ics: [Wrapper] =
+            (0..<50).map { i in
+                Wrapper(program: program, nic: i)
+        }
+
+        while true {
+            var idle = true
+            for wrapper in ics {
+                if let input = wrapper.inputs.dequeue() {
+                    wrapper.ic.runProgram(inputs: [input])
+                    idle = false
+                } else {
+                    wrapper.ic.runProgram(inputs: [-1])
+                }
+                if wrapper.ic.output.count > wrapper.outputPointer {
+                    let outputs = wrapper.ic.output[wrapper.outputPointer...]
+                    for output in outputs.enumerated() {
+                        if output.offset % 3 == 0 {
+                            wrapper.target = output.element
+                        } else if wrapper.target == 255 {
+                            if nat.count == 2 { // only keep the last package
+                                nat.removeAll()
+                            }
+                            nat.enqueue(output.element)
+                        }
+                        else {
+                            ics[wrapper.target!].inputs.enqueue(output.element)
+                        }
+                    }
+                    wrapper.outputPointer = wrapper.ic.output.count
+                }
+            }
+
+            if idle {
+                ics[0].inputs.enqueue(nat.dequeue()!) // x
+                let y = nat.dequeue()! // y
+                ics[0].inputs.enqueue(y)
+                if lastY == y {
+                    return y
+                } else {
+                    lastY = y
+                }
+            }
+        }
     }
 }
