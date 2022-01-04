@@ -1,4 +1,5 @@
-import Puzzle
+import AdventKit
+import Foundation
 
 let puzzle = Puzzle(input: try! String(contentsOfFile: "input.txt"))
 
