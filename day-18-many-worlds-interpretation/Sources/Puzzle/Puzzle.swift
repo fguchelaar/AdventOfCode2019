@@ -18,7 +18,7 @@ extension Point {
 }
 
 struct Route {
-    let source: Point
+    let source: GameState
     let goal: Point
 }
 
@@ -36,6 +36,12 @@ struct GameState {
 }
 
 extension GameState: Hashable {}
+struct GameState2 {
+    let points: [Point]
+    let keys: Set<Character>
+}
+
+extension GameState2: Hashable {}
 
 public class Puzzle {
     var maze: [Point: Tile]
@@ -78,20 +84,14 @@ public class Puzzle {
             }
     }
 
-    func astar(grid: [Point: Tile], start: Point, goal: Point, collected: Set<Character>, neighbors: (Point, Set<Character>) -> [Point]) -> Int? {
-//        if let cached = cache[Route(source: start, goal: goal)] {
-//            return cached
-//        }
+    var cache = [Route: Int]()
 
-//        func reconstruct(_ map: [Point: Point], _ point: Point) -> [Point] {
-//            var current = point
-//            var totalPath = [current]
-//            while map.keys.contains(current) {
-//                current = map[current]!
-//                totalPath.insert(current, at: 0)
-//            }
-//            return totalPath
-//        }
+    func astar(grid: [Point: Tile], start: Point, goal: Point, collected: Set<Character>, neighbors: ([Point: Tile], Point, Set<Character>) -> [Point]) -> Int? {
+        let route = Route(source: GameState(point: start, keys: collected), goal: goal)
+
+        if let cached = cache[route] {
+            return cached
+        }
 
         func h(_ point: Point) -> Int {
             point.manhattan(to: goal)
@@ -110,11 +110,12 @@ public class Puzzle {
         while !openSet.isEmpty {
             current = openSet.sorted { fScore[$0, default: Int.max] < fScore[$1, default: Int.max] }.first!
             if current == goal {
+                cache[route] = gScore[current]
                 return gScore[current]
             }
 
             openSet.remove(current)
-            for neighbor in neighbors(current, collected) {
+            for neighbor in neighbors(grid, current, collected) {
                 let tentativeScore = gScore[current, default: Int.max] + 1
                 if tentativeScore < gScore[neighbor, default: Int.max] {
                     cameFrom[neighbor] = current
@@ -155,16 +156,7 @@ public class Puzzle {
     }
 
     func dijkstra(grid: [Point: Tile], start: Point) -> Int {
-//        func reconstruct() -> [Point] {
-//            S ← empty sequence
-//            2  u ← target
-//            3  if prev[u] is defined or u = source:          // Do something only if the vertex is reachable
-//            4      while u is defined:                       // Construct the shortest path with a stack S
-//            5          insert u at the beginning of S        // Push the vertex onto the stack
-//            6          u ← prev[u]
-//        }
-
-        let neighbors: (Point, Set<Character>) -> [Point] = { point, collected in
+        let neighbors: ([Point: Tile], Point, Set<Character>) -> [Point] = { grid, point, collected in
 
             // If we're standing on a key, only proceed if we have that key in
             // our possesion. This way we can minimize visible paths to the
@@ -174,7 +166,7 @@ public class Puzzle {
             }
 
             return [point.up, point.down, point.left, point.right].filter { p in
-                switch self.maze[p] {
+                switch grid[p] {
                 case .open, .key, .entrance:
                     return true
                 case .door(let door):
@@ -185,7 +177,6 @@ public class Puzzle {
             }
         }
 
-        var prev = [GameState: GameState]()
         var dist = [GameState: Int]()
         dist[GameState(point: start, keys: [])] = 0
 
@@ -193,7 +184,7 @@ public class Puzzle {
 
         // add the direct neighbours to q
         keys.forEach {
-            if let route = astar(grid: maze, start: entrance, goal: $0.key, collected: [], neighbors: neighbors) {
+            if let route = astar(grid: grid, start: start, goal: $0.key, collected: [], neighbors: neighbors) {
                 let gameState = GameState(point: $0.key, keys: [$0.value])
                 q.insert(gameState, priority: route)
                 dist[gameState] = route
@@ -204,7 +195,7 @@ public class Puzzle {
             let u = q.removeMin()
             var n = [(GameState, Int)]()
             keys.filter { !u.keys.contains($0.value) }.forEach {
-                if let route = astar(grid: maze, start: u.point, goal: $0.key, collected: u.keys, neighbors: neighbors) {
+                if let route = astar(grid: grid, start: u.point, goal: $0.key, collected: u.keys, neighbors: neighbors) {
                     n.append((GameState(point: $0.key, keys: u.keys.union([$0.value])), route))
                 }
             }
@@ -213,37 +204,10 @@ public class Puzzle {
                 let alt = dist[u, default: Int.max] + v.1
                 if alt < dist[v.0, default: Int.max] {
                     dist[v.0] = alt
-                    prev[v.0] = u
                     q.insert(v.0, priority: alt)
                 }
             }
         }
-
-        /*
-         dist[source] ← 0                           // Initialization
-         3
-         4      create vertex priority queue Q
-         5
-         6      for each vertex v in Graph:
-         7          if v ≠ source
-         8              dist[v] ← INFINITY                 // Unknown distance from source to v
-         9              prev[v] ← UNDEFINED                // Predecessor of v
-         10
-         11         Q.add_with_priority(v, dist[v])
-         12
-         13
-         14     while Q is not empty:                      // The main loop
-         15         u ← Q.extract_min()                    // Remove and return best vertex
-         16         for each neighbor v of u:              // only v that are still in Q
-         17             alt ← dist[u] + length(u, v)
-         18             if alt < dist[v]
-         19                 dist[v] ← alt
-         20                 prev[v] ← u
-         21                 Q.decrease_priority(v, alt)
-         22
-         23     return dist, prev
-
-         */
 //        print(dist)
         let goal = Set<Character>(keys.map { $0.value })
         return dist
@@ -253,11 +217,91 @@ public class Puzzle {
     }
 
     public func part1() -> Int {
-        draw(grid: maze)
-        return dijkstra(grid: maze, start: entrance)
+        dijkstra(grid: maze, start: entrance)
+    }
+
+    func dijkstra2(grid: [Point: Tile], start: [Point]) -> Int {
+        let neighbors: ([Point: Tile], Point, Set<Character>) -> [Point] = { grid, point, collected in
+
+            // If we're standing on a key, only proceed if we have that key in
+            // our possesion. This way we can minimize visible paths to the
+            // 'direct' keys
+            if let key = self.keys[point], !collected.contains(key) {
+                return []
+            }
+
+            return [point.up, point.down, point.left, point.right].filter { p in
+                switch grid[p] {
+                case .open, .key, .entrance:
+                    return true
+                case .door(let door):
+                    return collected.contains(door.lowercased().first!)
+                default:
+                    return false
+                }
+            }
+        }
+
+        var dist = [GameState2: Int]()
+        dist[GameState2(points: start, keys: [])] = 0
+
+        var q = PriorityQueue<GameState2, Int>()
+
+        // add the direct neighbours to q
+        keys.forEach { k in
+            start.enumerated().forEach { s in
+                if let route = astar(grid: grid, start: s.element, goal: k.key, collected: [], neighbors: neighbors) {
+                    var points = start
+                    points[s.offset] = k.key
+                    let gameState = GameState2(points: points, keys: [k.value])
+                    q.insert(gameState, priority: route)
+                    dist[gameState] = route
+                }
+            }
+        }
+
+        while !q.isEmpty {
+            let u = q.removeMin()
+            var n = [(GameState2, Int)]()
+            keys.filter { !u.keys.contains($0.value) }.forEach { k in
+
+                u.points.enumerated().forEach { s in
+                    if let route = astar(grid: grid, start: s.element, goal: k.key, collected: u.keys, neighbors: neighbors) {
+                        var points = u.points
+                        points[s.offset] = k.key
+                        n.append((GameState2(points: points, keys: u.keys.union([k.value])), route))
+                    }
+                }
+            }
+
+            n.forEach { v in
+                let alt = dist[u, default: Int.max] + v.1
+                if alt < dist[v.0, default: Int.max] {
+                    dist[v.0] = alt
+                    q.insert(v.0, priority: alt)
+                }
+            }
+        }
+        print(dist)
+        let goal = Set<Character>(keys.map { $0.value })
+        return dist
+            .filter { $0.key.keys == goal }
+            .sorted { $0.value < $1.value }
+            .first!.value
     }
 
     public func part2() -> Int {
-        -1
+        var maze2 = maze
+        let r1 = entrance.up.left
+        let r2 = entrance.up.right
+        let r3 = entrance.down.left
+        let r4 = entrance.down.right
+        maze2[entrance] = .wall
+        maze2[entrance.up] = .wall
+        maze2[entrance.left] = .wall
+        maze2[entrance.down] = .wall
+        maze2[entrance.right] = .wall
+        draw(grid: maze2)
+        return dijkstra2(grid: maze2, start: [r1, r2, r3, r4])
     }
 }
