@@ -1,0 +1,16 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "swift-collections",
+        "repositoryURL": "https://github.com/AquaGeek/swift-collections",
+        "state": {
+          "branch": "priority-queue",
+          "revision": "dff2b1783badd696c3135abd8e26c3b7ad2e67fd",
+          "version": null
+        }
+      }
+    ]
+  },
+  "version": 1
+}
