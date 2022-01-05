@@ -85,9 +85,16 @@ public class Puzzle {
     }
 
     var cache = [Route: Int]()
+    var unreachable = [Route: Point]()
 
     func astar(grid: [Point: Tile], start: Point, goal: Point, collected: Set<Character>, neighbors: ([Point: Tile], Point, Set<Character>) -> [Point]) -> Int? {
         let route = Route(source: GameState(point: start, keys: collected), goal: goal)
+
+        if let nope = unreachable[route],
+           nope == goal
+        {
+            return nil
+        }
 
         if let cached = cache[route] {
             return cached
@@ -127,6 +134,7 @@ public class Puzzle {
                 }
             }
         }
+        unreachable[route] = goal
         return nil
     }
 
@@ -282,7 +290,6 @@ public class Puzzle {
                 }
             }
         }
-        print(dist)
         let goal = Set<Character>(keys.map { $0.value })
         return dist
             .filter { $0.key.keys == goal }
@@ -291,6 +298,7 @@ public class Puzzle {
     }
 
     public func part2() -> Int {
+        cache.removeAll()
         var maze2 = maze
         let r1 = entrance.up.left
         let r2 = entrance.up.right
